@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+verify_ssl = true
+name = "pip_conf_index_global"
+
+[packages]
+fastapi = "*"
+openai = "*"
+asyncio = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+tiktoken = "*"
+aiohttp = "*"
+cachetools = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
