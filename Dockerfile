@@ -26,4 +26,4 @@ EXPOSE 8000
 ENTRYPOINT [ "pipenv", "run", "python", "main.py" ]
 
 # Add a health check to monitor the application's status, using curl to check if the server is responding
-HEALTHCHECK --interval=5s --timeout=3s CMD curl -f http://localhost:8000/ || exit 1
+HEALTHCHECK --start-period=6s --interval=8s --timeout=6s CMD curl -f http://localhost:8000/ || exit 1
