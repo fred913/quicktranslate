@@ -1,5 +1,5 @@
 # coding: utf-8
-from typing import Iterable
+from typing import Iterable, TypeAlias
 
 import cachetools
 import openai
@@ -80,15 +80,16 @@ async def root():
     return {"message": "service working", "status": True}
 
 
+LanguageModeType: TypeAlias = str
+AutoLangType: TypeAlias = Iterable[LanguageModeType]
+
+# TODO: algo-based auto language detection
+AUTOLANG_ZH_EN: AutoLangType = "auto:zh-en", "auto:en-zh"
+
+
 def is_valid_lang(lang: str):
     valid_languages = {
-        "en",
-        "en_US",
-        "en_GB",
-        "zh",
-        "zh_CN",
-        "zh_TW",
-        "ja",
+        "en", "en_US", "en_GB", "zh", "zh_CN", "zh_TW", "ja", *AUTOLANG_ZH_EN
     }
     return lang.lower() in {i.lower() for i in valid_languages}
 
@@ -110,7 +111,12 @@ async def translate(text: str, to_lang: str):
     if cache_key in cache_mod:
         return cache_mod[cache_key]
 
-    gpt_llm_prompt = f"Please translate the text to \"{to_lang}\" keeping all formats and some special characters intact:\n"
+    gpt_llm_prompt = ""
+    if to_lang in AUTOLANG_ZH_EN:
+        gpt_llm_prompt += f"Please translate the text to Chinese(if its now english) or English(if its now Chinese) keeping all formats and some special characters intact:\n"
+        to_lang = "that kind of language"
+    else:
+        gpt_llm_prompt += f"Please translate the text to \"{to_lang}\" keeping all formats and some special characters intact:\n"
     gpt_llm_prompt += "```\n"
     gpt_llm_prompt += text.replace("```", "\\`\\`\\`")
     gpt_llm_prompt += "\n```"
@@ -129,7 +135,7 @@ async def translate(text: str, to_lang: str):
         "role":
         "assistant",
         "content":
-        f"Sure. I'm famaliar with \"{to_lang}\". Here's my translation:\n```\n"
+        f"Sure. I'm famaliar with {to_lang}. Here's my translation:\n```\n"
     }],
                                                   model_choices=[
                                                       "gpt-3.5-turbo",
@@ -137,7 +143,8 @@ async def translate(text: str, to_lang: str):
                                                   ],
                                                   temperature=0.35,
                                                   stop="\n```")
-    response["completion"] = response["completion"].replace("\\`\\`\\`", "```")
+    response["translation"] = response.pop("completion").replace(
+        "\\`\\`\\`", "```")
     response.pop("prompt")
     response.update({"status": True, "message": ""})
 
