@@ -2,4 +2,5 @@ Pipfile.lock
 .vscode
 .idea
 .env
-tmp.txt
+/tmp.txt
+/test-publicapi.py
